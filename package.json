@@ -1,5 +1,6 @@
 {
   "name": "vscmat",
+  "publisher": "volatile-static",
   "displayName": "vsc-mat",
   "description": "Preview mat files in VSCode.",
   "version": "0.0.1",
@@ -11,6 +12,7 @@
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
+  "icon": "mat.ico",
   "contributes": {
     "customEditors": [
       {

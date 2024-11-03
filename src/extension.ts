@@ -45,10 +45,21 @@ class MatFileEditor implements vsc.CustomReadonlyEditorProvider<MatDocument> {
     webviewPanel: vsc.WebviewPanel,
     _token: vsc.CancellationToken
   ): Promise<void> {
+    console.info(this.context);
     webviewPanel.webview.options = {
       enableScripts: true,
     };
     webviewPanel.webview.html = await this.getHtmlForWebview(document);
+    webviewPanel.webview.onDidReceiveMessage(async (message) => {
+      if (message === "preview") {
+        const data = await document.data,
+          doc = await vsc.workspace.openTextDocument({
+            language: "json",
+            content: JSON.stringify(data, null, 2),
+          });
+        vsc.window.showTextDocument(doc);
+      }
+    });
   }
 
   private async getHtmlForWebview(mat: MatDocument) {
@@ -70,14 +81,33 @@ class MatFileEditor implements vsc.CustomReadonlyEditorProvider<MatDocument> {
               text-align: left;
               position: relative;
           }
+          #preview {
+              color: var(--vscode-button-foreground);
+              background-color: var(--vscode-button-background);
+              border: none;
+              padding: 5px 10px;
+          }
+          #preview:hover {
+              color: var(--vscode-button-hoverForeground);
+              background-color: var(--vscode-button-hoverBackground);
+          }
         </style>
       </head>
       <body>
-        <p>${data.header}</p>
+        <p>
+          <button id="preview">Preview as JSON</button>
+          <span>${data.header}</span>
+        </p>
         <div>${this.renderTable(data.data)}</div>
+        <script>
+          const vscode = acquireVsCodeApi();
+          document.getElementById('preview').addEventListener('click', () => {
+            vscode.postMessage('preview');
+          });
+        </script>
       </body>
       </html>
-    `.trim();
+    `;
   }
 
   private renderTable(data: any): string {
@@ -97,11 +127,11 @@ class MatFileEditor implements vsc.CustomReadonlyEditorProvider<MatDocument> {
                 <td>${key}</td>
                 ${this.renderVariable(value)}
               </tr>
-            `.trim();
+            `;
           })
           .join("")}
       </table>
-    `.trim();
+    `;
   }
 
   private renderVariable(variable: any): string {
@@ -128,18 +158,18 @@ class MatFileEditor implements vsc.CustomReadonlyEditorProvider<MatDocument> {
         <td>1</td>
         <td>${typeof arr[0]}</td>
         <td>${JSON.stringify(arr[0])}</td>
-      `.trim();
+      `;
     } else if (typeof arr[0] === "object") {
       return `
         <td>${arr.length}</td>
         <td>complex</td>
-        <td><pre>${JSON.stringify(arr, null, 2)}</pre></td>
-      `.trim();
+        <td>...</td>
+      `;
     }
     return `
       <td>${arr.length}</td>
       <td>${typeof arr[0]}</td>
       <td>[${arr.join(", ")}]</td>
-    `.trim();
+    `;
   }
 }
