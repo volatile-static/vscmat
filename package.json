@@ -4,6 +4,10 @@
   "displayName": "vsc-mat",
   "description": "Preview mat files in VSCode.",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:volatile-static/vscmat.git"
+  },
   "engines": {
     "vscode": "^1.95.0"
   },
